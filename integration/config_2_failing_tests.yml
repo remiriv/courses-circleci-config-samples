@@ -1,0 +1,21 @@
+version: 2.1
+jobs:
+  launch_tests:
+    docker:
+      - image: circleci/python:3.9
+    steps:
+      - checkout
+      - run:
+          name: Install Dependencies
+          command: pip install -r src/requirements.txt
+      - run:
+          name: test
+          command: pytest
+      - run:
+          name: lint
+          command: pylint src
+
+workflows:
+  test_and_linter:
+    jobs:
+      - launch_tests

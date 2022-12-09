@@ -1,0 +1,24 @@
+version: 2.1
+jobs:
+  launch_tests:
+    docker:
+      - image: circleci/python:3.9
+    environment:
+      ENV_NAME: Still another env
+    steps:
+      - checkout
+      - run:
+          name: Install Dependencies
+          command: pip install -r src/requirements.txt # Environment variable ENV_NAME here is "Yet another one"
+          environment: 
+            ENV_NAME: Yet another one
+      - run:
+          name: Test
+          command: pytest  # Environment variable ENV_NAME here is "Still another env"
+
+workflows:
+  test_with_context:
+    jobs:
+      - launch_tests: 
+          context:
+            - test_configuration_python

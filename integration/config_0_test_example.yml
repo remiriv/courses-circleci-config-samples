@@ -1,0 +1,47 @@
+version: 2
+jobs:
+  launch_tests:
+    docker:
+      - image: circleci/python:3.9
+    steps:
+      - checkout
+      - run:
+          name: Install Dependencies
+          command: pip install -r requirements.txt
+      # - run:
+      #     name: lint
+      #     command: pylint src
+      - run:
+          name: test
+          command: pytest
+
+workflows:
+  version: 2
+  deploy_dev:
+    jobs:
+      - deploy_to_GCP:
+          context: dev
+          filters:
+            branches:
+              only: develop
+  deploy_preprod:
+    jobs:
+      - deploy_to_GCP:
+          context: preprod
+          filters:
+            branches:
+              only: preprod
+  deploy_prod:
+    jobs:
+      - deploy_to_GCP:
+          context: production
+          filters:
+            branches:
+              only: master
+  test_branch:
+    jobs:
+      - launch_tests:
+          filters:
+            branches:
+              ignore:
+                - master

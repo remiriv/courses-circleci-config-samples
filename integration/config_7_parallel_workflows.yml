@@ -1,0 +1,91 @@
+version: 2.1
+
+steps:
+  - run: &install_dependencies
+      name: Install Dependencies
+      command: pip install -r src/requirements.txt
+  - run: &test
+      name: Test
+      command: pytest
+
+
+jobs:
+  starting_work:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - run:
+          name: Starting
+          command: echo "Starting to build !"
+  launch_tests:
+    docker:
+      - image: cimg/python:3.9
+    steps:
+      - checkout
+      - run: *install_dependencies
+      - run: *test
+  launch_integration_tests:
+    docker:
+      - image: cimg/python:3.9
+    steps:
+      - checkout
+      - run: *install_dependencies
+      - run:
+          name: Running end-to-end integration tests
+          command: echo "Put integration tests here"
+  deploy_staging:
+    docker:
+      - image: cimg/python:3.9
+    environment:
+      ENV_NAME: staging
+    steps:
+      - run:
+          name: Running deployment to staging step
+          command: echo "Deploy to staging"
+  deploy_production:
+    docker:
+      - image: cimg/python:3.9
+    environment:
+      ENV_NAME: production
+    steps:
+      - run:
+          name: Running deployment to production step
+          command: echo "Deploy to production"
+  all_good:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - run:
+          name: All good
+          command: echo "All steps are finished and succeeded !"
+
+workflows:
+  run_tests_and_deploy: 
+    jobs: 
+      - starting_work
+      - launch_tests: 
+          context:
+            - test_configuration_python
+          requires: 
+            - starting_work
+      - launch_integration_tests: 
+          context:
+            - test_configuration_python
+          requires: 
+            - starting_work
+      - deploy_staging: 
+          context:
+            - staging
+          requires: 
+            - launch_tests
+            - launch_integration_tests
+      - deploy_production: 
+          context:
+            - production
+          requires: 
+            - launch_tests
+            - launch_integration_tests
+      - all_good:
+          requires: 
+            - deploy_staging
+            - deploy_production
